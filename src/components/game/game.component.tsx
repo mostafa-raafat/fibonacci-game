@@ -18,15 +18,10 @@ type stateType = {
 export default class GameComponent extends Component<gridSize, stateType> {
 
     private gameGrid: any[][] = [];
-    private fibCacheList: any = {};
-    private fibNumber: any = {
-        2: true,
-        3: true,
-        5: true,
-        8: true,
-        13: true
-    };
     private fibSequence: any = {};
+    private fibListCache: any = {};
+    private fibNumbersCache: any = {};
+    private timerHandle: NodeJS.Timeout | undefined;
     
     constructor(props: any) {
         super(props);
@@ -77,12 +72,19 @@ export default class GameComponent extends Component<gridSize, stateType> {
         )
     };
 
+    /**
+     * Handle click on cell.
+     * Cell row & column will be increase by +1 & it will light up yellow.
+     * If a fibonacci sequence is found in a row it will light up green & reset to empty.
+     * @param {number} row
+     * @param {number} column
+     */
     public cellClicked(row: number, column: number): void {
         for (let i = 0; i < this.props.rows; i++) {
             this.gameGrid[i][column]++;
         }
 
-        this.gameGrid[row][column]--
+        this.gameGrid[row][column]--;
 
         for (let i = 0; i < this.props.cols; i++) {
             this.gameGrid[row][i]++;
@@ -90,45 +92,63 @@ export default class GameComponent extends Component<gridSize, stateType> {
         }
 
         this.setState({gameGrid: this.gameGrid, selectedCell: { row, column }, fibSequence: this.fibSequence });
-        setTimeout(() => {
-            if(Object.keys(this.fibSequence).length) {
+        
+        // Reset state after every click.
+        this.timerHandle = setTimeout(() => {
+            if(Object.keys(this.fibSequence).length > 0)
                 this.fibSequence = {};
-            }
             this.setState({ selectedCell: { row: undefined, column: undefined}, fibSequence: {} });
         }, 500);
     }
 
+    /**
+     * Check Fibonacci numbers in grid.
+     * @param {Array<number>} row
+     * @param {number} rowNumber
+     */
     private checkFibonacci(row: Array<number>, rowNumber: number): void {
         for (let i = 0; i < row.length; i++) {
-            let list: Set<number>;
-            if((row[i] && row[i+1] && row[i+2] && row[i+3] && row[i+4]) !== null) {
-                list = new Set([row[i], row[i+1], row[i+2], row[i+3], row[i+4]])
+            if((row[i] && row[i+1] && row[i+2] && row[i+3] && row[i+4]) !== null && 
+            (row[i] && row[i+1] && row[i+2] && row[i+3] && row[i+4]) > 0) {
                 if(
-                    this.fibNumber[row[i]] && this.fibNumber[row[i+1]] && 
-                    this.fibNumber[row[i+2]] && this.fibNumber[row[i+3]] &&
-                    this.fibNumber[row[i+4]] && list.size === 5
-                ) {
-                    if(this.FibListMemo([row[i], row[i+1], row[i+2], row[i+3], row[i+4]])) {
-                        this.gameGrid[rowNumber][i]   = 
-                        this.gameGrid[rowNumber][i+1] = 
-                        this.gameGrid[rowNumber][i+2] = 
-                        this.gameGrid[rowNumber][i+3] =
-                        this.gameGrid[rowNumber][i+4] = null;
-
-                        this.fibSequence[`${rowNumber}-${i}`] =
-                        this.fibSequence[`${rowNumber}-${i+1}`] =
-                        this.fibSequence[`${rowNumber}-${i+2}`] =
-                        this.fibSequence[`${rowNumber}-${i+3}`] =
-                        this.fibSequence[`${rowNumber}-${i+4}`] = true;
-                    }
+                    this.FibValueMemo(row[i]) && this.FibValueMemo(row[i+1]) && 
+                    this.FibValueMemo(row[i+2]) && this.FibValueMemo(row[i+3]) &&
+                    this.FibValueMemo(row[i+4])
+                ) 
+                {
+                    if(this.FibListMemo([row[i], row[i+1], row[i+2], row[i+3], row[i+4]]))
+                        this.resetFibList(rowNumber, i);
                 }
             }
         }
     }
 
-    private isFib(val: number): boolean {
-        var check1 = 5 * Math.pow(val, 2) + 4;
-        var check2 = 5 * Math.pow(val, 2) - 4;
+    /**
+     * reset fibonacci list.
+     * @param {number} value
+     */
+    private resetFibList(row: number, column: number): void {
+        this.gameGrid[row][column]   = 
+        this.gameGrid[row][column+1] = 
+        this.gameGrid[row][column+2] = 
+        this.gameGrid[row][column+3] =
+        this.gameGrid[row][column+4] = null;
+
+        this.fibSequence[`${row}-${column}`] =
+        this.fibSequence[`${row}-${column+1}`] =
+        this.fibSequence[`${row}-${column+2}`] =
+        this.fibSequence[`${row}-${column+3}`] =
+        this.fibSequence[`${row}-${column+4}`] = true;
+    }
+
+    /**
+     * Check if number is fibonacci.
+     * @param {number} value
+     * @returns {boolean}
+     */
+    private isFib(value: number): boolean {
+        var check1 = 5 * Math.pow(value, 2) + 4;
+        var check2 = 5 * Math.pow(value, 2) - 4;
 
         function isPerfectSquare(num: number) {
             return Math.sqrt(num) % 1 === 0;
@@ -144,45 +164,81 @@ export default class GameComponent extends Component<gridSize, stateType> {
         else return !!(isPerfect1 || isPerfect2);
     }
 
-    private isFibSequence(arr: number[]): boolean {
-        if (arr.length < 3) {
+    /**
+     * Check if list is part of fibonacci sequence.
+     * @param {number[]} list
+     * @returns {boolean}
+     */
+    private isFibSequence(list: number[]): boolean {
+        if (list.length < 3) {
             return false;
         }
 
         let fib1 = 0;
         let fib2 = 1;
 
-        while (fib1 < arr[0]) {
+        while (fib1 < list[0]) {
             let tmp = fib1 + fib2;
             fib1 = fib2;
             fib2 = tmp;
         }
 
-        if (fib1 !== arr[0]) {
+        if (fib1 !== list[0]) {
             return false;
         }
 
-        if (fib2 !== arr[1]) {
+        if (fib2 !== list[1]) {
             return false;
         }
 
-        for (let i = 2; i < arr.length; i++){
-            if (arr[i] < 0)
+        for (let i = 2; i < list.length; i++){
+            if (list[i] < 0)
                 return false;
 
-            if (arr[i] !== (arr[i - 1] + arr[i - 2]))
+            if (list[i] !== (list[i - 1] + list[i - 2]))
                 return false;
         }
         return true;
     }
 
+    /**
+     * Memorize fibonacci values.
+     * @param {number} value
+     * @returns {boolean}
+     */
+    private FibValueMemo(value: number): boolean {
+        let isFib: boolean;
+        let FibKey: string = value.toString();
+        if (FibKey in this.fibNumbersCache)
+            isFib = this.fibNumbersCache[FibKey];
+        else
+            isFib = this.fibNumbersCache[FibKey] = this.isFib(value);
+        return isFib;
+    }
+
+    /**
+     * Memorize fibonacci list.
+     * @param {number[]} list
+     * @returns {boolean}
+     */
     private FibListMemo(list: number[]): boolean {
         let isFibSequence: boolean;
         let FibListKey: string = list.toString();
-        if (FibListKey in this.fibCacheList)
-            isFibSequence = this.fibCacheList[FibListKey];
+        if (FibListKey in this.fibListCache)
+            isFibSequence = this.fibListCache[FibListKey];
         else
-            isFibSequence = this.fibCacheList[FibListKey] = this.isFibSequence(list);
+            isFibSequence = this.fibListCache[FibListKey] = this.isFibSequence(list);
         return isFibSequence;
+    }
+
+    /**
+     * Clear setTimeout handler if exist.
+     * @memberof ReactLifeCycle
+     */
+    componentWillUnmount = () => {
+        // Is our timer running?
+        if (this.timerHandle) {
+            clearTimeout(this.timerHandle);
+        }  
     }
 }
