@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/fibonacci-game/static/css/main.1071fd2e.chunk.css",
+    "main.js": "/fibonacci-game/static/js/main.3011825d.chunk.js",
+    "main.js.map": "/fibonacci-game/static/js/main.3011825d.chunk.js.map",
+    "runtime-main.js": "/fibonacci-game/static/js/runtime-main.946ac26d.js",
+    "runtime-main.js.map": "/fibonacci-game/static/js/runtime-main.946ac26d.js.map",
+    "static/js/2.fb79ce62.chunk.js": "/fibonacci-game/static/js/2.fb79ce62.chunk.js",
+    "static/js/2.fb79ce62.chunk.js.map": "/fibonacci-game/static/js/2.fb79ce62.chunk.js.map",
+    "index.html": "/fibonacci-game/index.html",
+    "precache-manifest.3b12610a15110085ebd9244b13347fc1.js": "/fibonacci-game/precache-manifest.3b12610a15110085ebd9244b13347fc1.js",
+    "service-worker.js": "/fibonacci-game/service-worker.js",
+    "static/css/main.1071fd2e.chunk.css.map": "/fibonacci-game/static/css/main.1071fd2e.chunk.css.map",
+    "static/js/2.fb79ce62.chunk.js.LICENSE.txt": "/fibonacci-game/static/js/2.fb79ce62.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.946ac26d.js",
+    "static/js/2.fb79ce62.chunk.js",
+    "static/css/main.1071fd2e.chunk.css",
+    "static/js/main.3011825d.chunk.js"
+  ]
+}
